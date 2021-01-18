@@ -17,7 +17,14 @@ class QccSpider(scrapy.Spider):
                 if j == 1:
                     dt.update({ths[1].xpath('.//text()').get(): trs[i].xpath('./td[2]//span[@class="seo font-14"]//text()').get()})
                 else:
-                    dt.update({re.sub('\s', '', ''.join(ths[j].xpath('.//text()').getall())):  re.sub('\s', '', ''.join(trs[i].xpath('./td[{}]//text()'.format(j+1)).getall()))})
+                    key = re.sub('\s', '', ths[j].xpath('./text()').get())
+                    if key == '':
+                        key = re.sub('\s', '', ''.join(ths[j].xpath('.//text()').getall()))
+                    value = re.sub('\s', '', trs[i].xpath('./td[{}]/text()'.format(j+1)).get())
+                    if  value == '':
+                        value = re.sub('\s', '', ''.join(trs[i].xpath('./td[{}]//text()'.format(j+1)).getall()))
+                    dt.update({key: value})
+
             li.append(dt)
         return li
 
@@ -79,6 +86,3 @@ class QccSpider(scrapy.Spider):
             item['高管信息'] =employeeslist
         
         yield item
-
-
-
