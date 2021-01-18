@@ -8,6 +8,19 @@ class QccSpider(scrapy.Spider):
     allowed_domains = ['qcc.com']
     start_urls = ['http://qcc.com/']
 
+    def get_list(self, trs):
+        ths = trs[0].xpath('.//th')
+        li = []
+        for i in range(1, len(trs), 2):
+            dt = {}
+            for j in range(len(ths)):
+                if j == 1:
+                    dt.update({ths[1].xpath('.//text()').get(): trs[i].xpath('./td[2]//span[@class="seo font-14"]//text()').get()})
+                else:
+                    dt.update({re.sub('\s', '', ''.join(ths[j].xpath('.//text()').getall())):  re.sub('\s', '', ''.join(trs[i].xpath('./td[{}]//text()'.format(j+1)).getall()))})
+            li.append(dt)
+        return li
+
     def start_requests(self):
         # 目录
         excel = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'check.xlsx')
@@ -40,6 +53,31 @@ class QccSpider(scrapy.Spider):
                     content = re.sub('\s', '', tds[i+1].xpath('.//text()').get())
                 item.fields[field] = scrapy.Item()
                 item[field] = content
+
+        # 股东信息
+        try:
+            trs = response.xpath('.//div[@id="ipopartnerslist"]//tr')
+            partnerslist = self.get_list(trs)
+            item.fields['股东信息'] = scrapy.Item()
+            item['股东信息'] = partnerslist
+        except:
+            trs = response.xpath('.//div[@id="partnerslist"]//tr')
+            partnerslist = self.get_list(trs)
+            item.fields['股东信息'] = scrapy.Item()
+            item['股东信息'] = partnerslist
+
+        # 高管信息
+        try:
+            trs = response.xpath('.//div[@id="ipoemployeeslist"]//tr')
+            employeeslist = self.get_list(trs)
+            item.fields['高管信息'] = scrapy.Item()
+            item['高管信息'] =employeeslist
+        except:
+            trs = response.xpath('.//div[@id="employeeslist"]//tr')
+            employeeslist = self.get_list(trs)
+            item.fields['高管信息'] = scrapy.Item()
+            item['高管信息'] =employeeslist
+        
         yield item
 
 
