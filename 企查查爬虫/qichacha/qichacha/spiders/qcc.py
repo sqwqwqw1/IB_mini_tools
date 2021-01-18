@@ -15,7 +15,11 @@ class QccSpider(scrapy.Spider):
             dt = {}
             for j in range(len(ths)):
                 if j == 1:
-                    dt.update({ths[1].xpath('.//text()').get(): trs[i].xpath('./td[2]//span[@class="seo font-14"]//text()').get()})
+                    key = re.sub('\s', '', ths[1].xpath('.//text()').get())
+                    if key == '':
+                        key = re.sub('\s', '', ''.join(ths[1].xpath('.//span//text()').getall()))
+                    value = trs[i].xpath('./td[2]//span[@class="seo font-14"]//text()').get()
+                    dt.update({key: value})
                 else:
                     key = re.sub('\s', '', ths[j].xpath('./text()').get())
                     if key == '':
